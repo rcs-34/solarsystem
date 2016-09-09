@@ -4,17 +4,24 @@
 <meta charset="UTF-8" />
 <title>Solar system basics</title>
 <style>
-body{font-size:12px;font-family:sans-serif;width:100%;height:100%;background:#000;color:#def;padding:0;margin:0;}
+body{font-size:12px;font-family:sans-serif;background:#000;color:#def;padding:0;margin:0;}
+a:link {color:#aaf;}
+a:visited {color:#aaf;}
 table{border-collapse:collapse;}
-.ftd{ transition:background 2s;}
+.ftd,button{transition:background 2s, border-radius 1s;}
 .ftd:hover{background:#666;cursor:pointer;}
 th{font-size:14px;font-weight:normal;text-align:left;border:1px solid gray;}
-td{text-align:right;border:1px solid gray;-webkit-user-select: none;-moz-user-select: none;-ms-user-select: none; }
-td.nb{text-align:center;color:#0f0;}
+td{text-align:right;border:1px solid gray; }
+td.nb{text-align:center;}
 canvas{background: #000;padding:0;margin:0;}
 .value{display:inline-block;width:5em;}
-h3{margin-top:2em;margin-bottom:0.3em;}
+h1{font-weight:100; font-size: 300%;margin:0px;}
+h3{margin-top:2em;margin-bottom:0.3em;background:linear-gradient(90deg,#444,#000);}
 p{margin-top:0.5em;margin-bottom: 0em;}
+button{font-size:30px;color:#888;width:46px;height:46px;border-radius:23px;border:1px solid #888;background:#000;outline:none;}
+button:hover{color:#fff;border-radius:15px;}
+button:active{border-color:#fff;}
+p{border-bottom:4px solid;}
 .bar{visibility:hidden;}
 </style>
 <script language="javascript" type="text/javascript">
@@ -37,245 +44,247 @@ var whSp;
 var s=[];
 var e=[];
 var working=0;
-
 function Body(_name,_sats){
- var row=document.getElementById(_name);
- var cells=row.cells;
- var t=this;
- t.name=cells[0].innerHTML;
- t.c=row.style.color;
- t.r=parseFloat(cells[1].innerHTML);
- t.dist=parseFloat(cells[2].innerHTML);
- t.year=parseFloat(cells[3].innerHTML);
- t.day=parseFloat(cells[4].innerHTML)/365;
- t.sats=_sats;
- t.x=0;
- t.y=0;
- t.index=0;
- for(var i in t.sats){
-  t.sats[i].mom=t;
-  t.sats[i].index=(parseInt(i)+1);
- }
+var row=document.getElementById(_name);
+var cs=row.cells;
+var t=this;
+t.name=cs[0].innerHTML;
+t.c=row.style.color;
+t.r=parseFloat(cs[1].innerHTML);
+t.dist=parseFloat(cs[2].innerHTML);
+t.year=parseFloat(cs[3].innerHTML);
+t.day=parseFloat(cs[4].innerHTML)/365;
+t.sats=_sats;
+t.x=0;
+t.y=0;
+t.index=0;
+for(var i in t.sats){
+t.sats[i].mom=t;
+t.sats[i].index=(parseInt(i)+1);
+}
 }
 Body.prototype.update=function(){
- //Work with (t-1) coords. The new ones would not be consistent.
- var t=this;
- t.oX=t.x;
- t.oY=t.y;
- var ad;
- if(t!==e[0]){
-  //Stroboscopic effect elimination
-  if(dt/t.day<Math.PI/4){
-   ad=T/t.day;
-  }else{
-   ad=Math.random()*Math.PI*2;
-  }
- }
- if(t!==sun){
-  var mx=t.mom.oX;
-  var my=t.mom.oY;
-  if(t===e[0]){
-   ad=Math.atan2(t.oY-my,t.oX-mx);
-  }
-  var ay=T/t.year;
-  var norm=whOn.getVal();
-  var dist=au/whO.getVal()*t.dist*(1-norm)+nDistance*t.index*norm;
-  t.x=mx+dist*Math.cos(ay);
-  t.y=my+dist*Math.sin(ay);
-  cx.beginPath();
-  cx.setTransform(1,0,0,1,trX,trY);
-  cx.arc(mx,my,dist,0,2*Math.PI,false);
-  cx.lineWidth=0.4;
-  cx.strokeStyle=t.c;
-  cx.stroke();
- }
- for(var i in t.sats){
-  t.sats[i].update();
- }
- cx.setTransform(1,0,0,1,trX+t.oX,trY+t.oY);
- cx.fillStyle=t.c;
- var norm=whSn.getVal();
- var r=t.r*(1-norm)+nRadius*norm;
- cx.fillText(t.name,0,-r);
- var grd;
- if(t===sun){
-  grd=t.c;
- }else{
-  var grd=cx.createLinearGradient(-r/2,0,r/2*1.8,0);
-  grd.addColorStop(0,t.c);
-  grd.addColorStop(1,"#000");
-  var sunDir=Math.atan2(t.oY-sun.y,t.oX-sun.x);
-  cx.rotate(sunDir);
- }
- cx.beginPath();
- cx.arc(0,0,r,0,2*Math.PI,false);
- cx.fillStyle=grd;
- cx.fill();
- if(t!==sun){
-  cx.rotate(-sunDir);
- }
- cx.lineWidth=2;
- cx.strokeStyle="#000";
- cx.rotate(ad);
- cx.beginPath();
- cx.moveTo(0,0);
- cx.lineTo(-r,0);
- cx.stroke();
+//Work with (t-1) coords.
+var t=this;
+t.oX=t.x;
+t.oY=t.y;
+var ad;
+if(t!==e[0]){
+//Prevent stroboscope
+if(dt/t.day<Math.PI/4){
+ad=T/t.day;
+}else{
+ad=Math.random()*Math.PI*2;
+}
+}
+if(t!==sun){
+var mx=t.mom.oX;
+var my=t.mom.oY;
+if(t===e[0]){
+ad=Math.atan2(t.oY-my,t.oX-mx);
+}
+var ay=T/t.year;
+var norm=whOn.getVal();
+var dist=au/whO.getVal()*t.dist*(1-norm)+nDistance*t.index*norm;
+t.x=mx+dist*Math.cos(ay);
+t.y=my+dist*Math.sin(ay);
+cx.beginPath();
+cx.setTransform(1,0,0,1,trX,trY);
+cx.arc(mx,my,dist,0,2*Math.PI,false);
+cx.lineWidth=0.4;
+cx.strokeStyle=t.c;
+cx.stroke();
+}
+for(var i in t.sats){
+t.sats[i].update();
+}
+cx.setTransform(1,0,0,1,trX+t.oX,trY+t.oY);
+cx.fillStyle=t.c;
+var norm=whSn.getVal();
+var r=t.r*(1-norm)+nRadius*norm;
+cx.fillText(t.name,0,-r);
+var grd;
+if(t===sun){
+grd=t.c;
+}else{
+grd=cx.createLinearGradient(-r/2,0,r/2*1.8,0);
+grd.addColorStop(0,t.c);
+grd.addColorStop(1,"#000");
+var sunDir=Math.atan2(t.oY-sun.y,t.oX-sun.x);
+cx.rotate(sunDir);
+}
+cx.beginPath();
+cx.arc(0,0,r,0,2*Math.PI,false);
+cx.fillStyle=grd;
+cx.fill();
+if(t!==sun){
+cx.rotate(-sunDir);
+}
+cx.lineWidth=2;
+cx.strokeStyle="#000";
+cx.rotate(ad);
+cx.beginPath();
+cx.moveTo(0,0);
+cx.lineTo(-r,0);
+cx.stroke();
 };
 function Ctrl(_id){
- this.div=document.getElementById(_id);
- this.plus=this.div.children[2];
- this.minus=this.div.children[0];
- this.out=this.div.children[1];
- this.val=0;
- var knob=this;
- this.plus.onclick=function(){
-  knob.val=Math.min(knob.max,knob.val+1);
-  knob.present();
- };
- this.minus.onclick=function(){
-  knob.val=Math.max(0,knob.val-1);
-  knob.present();
- };
+var t=this;
+t.div=document.getElementById(_id);
+t.plus=t.div.children[2];
+t.minus=t.div.children[0];
+t.out=t.div.children[1];
+t.val=0;
+t.plus.onclick=function(){
+t.val=Math.min(t.max,t.val+1);
+t.present();
+};
+t.minus.onclick=function(){
+t.val=Math.max(0,t.val-1);
+t.present();
+};
 }
 function goBabe(){
- var note=document.getElementById("note");
- note.innerHTML="<i>Click on body's row will make the body the center of the solar system in the simulator below</i>";
- s[0]=new Body("s1",[]);
- s[1]=new Body("s2",[]);
- e[0]=new Body("e1",[]);
- s[2]=new Body("s3",e);
- s[3]=new Body("s4",[]);
- s[4]=new Body("s5",[]);
- s[5]=new Body("s6",[]);
- s[6]=new Body("s7",[]);
- s[7]=new Body("s8",[]);
- s[8]=new Body("s9",[]);
- sun=new Body("sun",s);
- o=sun;
- onResize();
- //
- setInterval(function(){
-  if(working===0){
-   working=1;
-   trX=sun.x-o.x;
-   trY=sun.y-o.y;
-   cx.setTransform(1,0,0,1,trX,trY);
-   cx.clearRect(-trX,-trY,c.width,c.height);
-   sun.update();
-   cx.strokeStyle="#555";
-   cx.lineWidth=2;
-   working=0;
-  }
-  T+=dt;
- },RT);
+var note=document.getElementById("note");
+note.innerHTML="<i>Click on body's row to make the body the center of the solar system in the simulator below</i>";
+s[0]=new Body("s1",[]);
+s[1]=new Body("s2",[]);
+e[0]=new Body("e1",[]);
+s[2]=new Body("s3",e);
+s[3]=new Body("s4",[]);
+s[4]=new Body("s5",[]);
+s[5]=new Body("s6",[]);
+s[6]=new Body("s7",[]);
+s[7]=new Body("s8",[]);
+s[8]=new Body("s9",[]);
+sun=new Body("sun",s);
+o=sun;
+onResize();
+setInterval(function(){
+if(working===0){
+working=1;
+trX=sun.x-o.x;
+trY=sun.y-o.y;
+cx.setTransform(1,0,0,1,trX,trY);
+cx.clearRect(-trX,-trY,c.width,c.height);
+sun.update();
+cx.strokeStyle="#555";
+cx.lineWidth=2;
+working=0;
 }
-
-function addTag(_name,_target){
- var element=document.createElement(_name);
- _target.appendChild(element);
- return element;
+T+=dt;
+},RT);
 }
-
+function tag(_name,_target){
+var element=document.createElement(_name);
+_target.appendChild(element);
+return element;
+}
 function newCtrl(_name,_id){
- var td=document.createElement("td");
- td.setAttribute("class","nb");
- addTag("div",td).innerHTML=_name;
- var div=addTag("div",td);
- div.setAttribute("id",_id);
- div.setAttribute("style","white-space: nowrap");
- addTag("button",div).innerHTML="-";
- var val=addTag("span",div);
- val.setAttribute("class","value");
- addTag("button",div).innerHTML="+";
- return td;
+var td=document.createElement("td");
+td.setAttribute("class","nb");
+tag("div",td).innerHTML=_name;
+var div=tag("div",td);
+div.setAttribute("id",_id);
+div.setAttribute("style","white-space: nowrap");
+tag("button",div).innerHTML="-";
+var val=tag("span",div);
+val.setAttribute("class","value");
+tag("button",div).innerHTML="+";
+return td;
 }
-
 function onResize(){
- var ww=window.innerWidth;
- var wh=window.innerHeight;
- var slot=c=document.getElementById("simulator");
- slot.innerHTML="";
- addTag("h3",slot).innerHTML="Simulator";
- var rn=newCtrl("Radius normalization [%]","whSn");
- var on=newCtrl("Orbital radius normalization [%]","whOn");
- var os=newCtrl("Orbital radius scale","whO");
- var sp=newCtrl("Speed up","whSp");
- var table=addTag("table",slot);
- var rowc=addTag("tr",table);
- var tdc=addTag("td",rowc);
- c=addTag("canvas",tdc);
- if(ww>wh){
-  tdc.setAttribute("rowspan","4");
-  rowc.appendChild(rn);
-  addTag("tr",table).appendChild(on);
-  addTag("tr",table).appendChild(os);
-  addTag("tr",table).appendChild(sp);
- }else{
-  tdc.setAttribute("colspan","4");
-  var row=addTag("tr",table);
-  row.appendChild(rn);
-  row.appendChild(on);
-  row.appendChild(os);
-  row.appendChild(sp);
- }
- cx=c.getContext("2d");
- c.width=c.height=Math.min(ww,wh);
- nDistance=Math.max(c.width)/19;
- nRadius=nDistance/2.3;
- cx.lineWidth=1;
- sun.x=c.width/2;
- sun.y=c.height/2;
- //
- whSn=new Ctrl("whSn");
- whSn.getVal=function(){
-  return this.val/100;
- };
- whSn.present=function(){
-  this.out.innerHTML=""+Math.round((this.getVal()*100));
- };
- whSn.max=100;
- whSn.val=77;
- whSn.present();
- //
- whOn=new Ctrl("whOn");
- whOn.getVal=function(){
-  return Math.pow(this.base,this.val)-1;
- };
- whOn.present=function(){
-  this.out.innerHTML=""+Math.round(this.getVal()*100);
- };
- whOn.max=200;
- whOn.val=199;
- whOn.base=Math.pow(2,1/200);
- whOn.present();
- //
- whO=new Ctrl("whO");
- whO.getVal=function(){
-  return Math.ceil(Math.pow(1.1,this.val)*100)/100;
- };
- whO.present=function(){
-  this.out.innerHTML="1:"+this.getVal();
- };
- whO.max=100;
- whO.val=20;
- whO.present();
- //
- whSp=new Ctrl("whSp");
- whSp.getVal=function(){
-  return Math.round(((Math.pow(1.005,this.val+1)-1.0045)*10000))/10000;
- };
- whSp.present=function(){
-  this.out.innerHTML=(Math.round(this.getVal()*3155.6926)/100)+"·10<sup>6</sup>";
-  dt=2*Math.PI*this.getVal()*RT/1000;
- };
- whSp.max=200;
- whSp.val=2;
- whSp.present();
+var ww=window.innerWidth;
+var wh=window.innerHeight;
+var slot=c=document.getElementById("simulator");
+slot.innerHTML="";
+tag("h3",slot).innerHTML="Simulator";
+var rn=newCtrl("Radius normalization [%]","whSn");
+var on=newCtrl("Orbital radius normalization [%]","whOn");
+var os=newCtrl("Orbital radius scale","whO");
+var sp=newCtrl("Speed up","whSp");
+var table=tag("table",slot);
+var rowc=tag("tr",table);
+var tdc=tag("td",rowc);
+c=tag("canvas",tdc);
+if(ww>wh){
+tdc.setAttribute("rowspan","4");
+rowc.appendChild(rn);
+tag("tr",table).appendChild(on);
+tag("tr",table).appendChild(os);
+tag("tr",table).appendChild(sp);
+}else{
+tdc.setAttribute("colspan","4");
+var row=tag("tr",table);
+row.appendChild(rn);
+row.appendChild(on);
+row.appendChild(os);
+row.appendChild(sp);
+}
+cx=c.getContext("2d");
+c.width=c.height=Math.min(ww,wh);
+nDistance=Math.max(c.width)/19;
+nRadius=nDistance/2.3;
+cx.lineWidth=1;
+sun.x=c.width/2;
+sun.y=c.height/2;
+//
+whSn=new Ctrl("whSn");
+whSn.getVal=function(){
+return this.val/100;
+};
+whSn.present=function(){
+this.out.innerHTML=""+Math.round((this.getVal()*100));
+};
+whSn.max=100;
+whSn.val=77;
+whSn.present();
+//
+whOn=new Ctrl("whOn");
+whOn.getVal=function(){
+return Math.pow(this.base,this.val)-1;
+};
+whOn.present=function(){
+this.out.innerHTML=""+Math.round(this.getVal()*100);
+};
+whOn.max=200;
+whOn.val=199;
+whOn.base=Math.pow(2,1/200);
+whOn.present();
+//
+whO=new Ctrl("whO");
+whO.getVal=function(){
+return Math.ceil(Math.pow(1.1,this.val)*100)/100;
+};
+whO.present=function(){
+this.out.innerHTML="1:"+this.getVal();
+};
+whO.max=100;
+whO.val=60;
+whO.present();
+//
+whSp=new Ctrl("whSp");
+whSp.getVal=function(){
+return Math.round(((Math.pow(1.005,this.val+1)-1.0045)*10000))/10000;
+};
+whSp.present=function(){
+this.out.innerHTML=(Math.round(this.getVal()*3155.6926)/100)+"·10<sup>6</sup>";
+dt=2*Math.PI*this.getVal()*RT/1000;
+};
+whSp.max=200;
+whSp.val=2;
+whSp.present();
 }
 </script>
 </head>
 <body onLoad="goBabe()"  onResize="onResize()">
+<h1>Solar system basics</h1>
+<div>The Solar System is 4.6 billion years old. The vast majority of the system's mass is
+in the Sun, with most of the remaining mass contained in Jupiter. The four smaller
+planets, Mercury, Venus, Earth and Mars, are terrestrial planets,
+Jupiter and Saturn are gas giants, Uranus and Neptune are ice giants. 
+<i>[Source: <a href="https://en.wikipedia.org/wiki/Solar_System">WikiPedia</a>]</i>
+</div>
 <h3>Basic parameters</h3>
 <div id="note"></div>
 <table id="facts">
@@ -293,19 +302,19 @@ function onResize(){
 <tr onclick="o=s[8];" id="s9" class="ftd" style="color:#eff;"><th>Pluto</th><td>0.188</td><td>39.500</td><td>248.255</td><td>-6.4</td></tr>
 </table>
 <h3>Sun to Earth radius comparison</h3>
-<p style="border-bottom: 4px solid #ff5;width:100%;">Sun<span class="bar">______________________________________________________________________</span></p>
-<p style="border-bottom: 4px solid #05f;width:1%;">Earth<span class="bar">-</span></p>
+<p style="border-color:#ff5;width:100%;">Sun<span class="bar">______________________________________________________________________</span></p>
+<p style="border-color:#05f;width:1%;">Earth<span class="bar">-</span></p>
 <h3>Planets radius comparison</h3>
-<p style="border-bottom: 4px solid #d90;width:4%;">Mercury<span class="bar">___</span></p>
-<p style="border-bottom: 4px solid #dc5;width:10%;">Venus<span class="bar">_______</span></p>
-<p style="border-bottom: 4px solid #05f;width:10.6%;">Earth<span class="bar">_______</span></p>
-<p style="border-bottom: 4px solid #fff;width:2.9%;">Moon<span class="bar">__</span></p>
-<p style="border-bottom: 4px solid #f40;width:5.3%;">Mars<span class="bar">____</span></p>
-<p style="border-bottom: 4px solid #dc8;width:11%;">Jupiter<span class="bar">________</span></p>
-<p style="border-bottom: 4px solid #fa5;width:100%;">Saturn<span class="bar">______________________________________________________________________</span></p>
-<p style="border-bottom: 4px solid #5cf;width:43%;">Uranus<span class="bar">______________________________</span></p>
-<p style="border-bottom: 4px solid #54f;width:40%;">Neptune<span class="bar">____________________________</span></p>
-<p style="border-bottom: 4px solid #eff;width:2%;">Pluto<span class="bar">_</span></p>
+<p style="border-color:#d90;width:4%;">Mercury<span class="bar">___</span></p>
+<p style="border-color:#dc5;width:10%;">Venus<span class="bar">_______</span></p>
+<p style="border-color:#05f;width:10.6%;">Earth<span class="bar">_______</span></p>
+<p style="border-color:#fff;width:2.9%;">Moon<span class="bar">__</span></p>
+<p style="border-color:#f40;width:5.3%;">Mars<span class="bar">____</span></p>
+<p style="border-color:#dc8;width:11%;">Jupiter<span class="bar">________</span></p>
+<p style="border-color:#fa5;width:100%;">Saturn<span class="bar">______________________________________________________________________</span></p>
+<p style="border-color:#5cf;width:43%;">Uranus<span class="bar">______________________________</span></p>
+<p style="border-color:#54f;width:40%;">Neptune<span class="bar">____________________________</span></p>
+<p style="border-color:#eff;width:2%;">Pluto<span class="bar">_</span></p>
 <span id="simulator"><i>You need JavaScript to see the simulation</i></span>
 </body>
 </html>
